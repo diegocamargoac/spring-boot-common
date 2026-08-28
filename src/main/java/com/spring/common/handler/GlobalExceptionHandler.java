@@ -18,12 +18,15 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(NoSuchElementException.class)
-	public ResponseEntity<ApiResponseDTO<Object>> handleNotFound(
-			NoSuchElementException exception
+	public ResponseEntity<ApiResponseDTO<Object>> noSuchElementExceptionHandle(
+			NoSuchElementException exception,
+			HttpServletRequest request
 			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+		
 		return ResponseEntity
-				.status(HttpStatus.NOT_FOUND) // Error 404
-				.body(ApiResponseDTO.error("Resource not found: " + exception.getLocalizedMessage(), "/path"));
+				.status(HttpStatus.NOT_FOUND) // 404
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
 	@ExceptionHandler(MissingServletRequestParameterException.class)
@@ -35,7 +38,7 @@ public class GlobalExceptionHandler {
 		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
 		
 		return ResponseEntity
-				.status(HttpStatus.BAD_REQUEST) // Error 400
+				.status(HttpStatus.BAD_REQUEST) // 400
 				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
@@ -48,7 +51,7 @@ public class GlobalExceptionHandler {
 		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
 		
 		return ResponseEntity
-				.status(HttpStatus.BAD_REQUEST) // Error 400
+				.status(HttpStatus.BAD_REQUEST) // 400
 				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 
@@ -61,8 +64,20 @@ public class GlobalExceptionHandler {
 	String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
 	
 	return ResponseEntity
-			.status(HttpStatus.INTERNAL_SERVER_ERROR) // Error 500
+			.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
 			.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> illegalArgumentExceptionHandle(
+			IllegalArgumentException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
 }
