@@ -6,9 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.NoSuchElementException;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -77,6 +79,30 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity
 				.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> httpMessageNotReadableExceptionHandle(
+			HttpMessageNotReadableException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST) // 400
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> dataIntegrityViolationExceptionHandle(
+			DataIntegrityViolationException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+		
+		return ResponseEntity				
+				.status(HttpStatus.BAD_REQUEST) // 500
 				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
