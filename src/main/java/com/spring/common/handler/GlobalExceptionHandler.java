@@ -6,9 +6,12 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.NoSuchElementException;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,12 +21,15 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(NoSuchElementException.class)
-	public ResponseEntity<ApiResponseDTO<Object>> handleNotFound(
-			NoSuchElementException exception
+	public ResponseEntity<ApiResponseDTO<Object>> noSuchElementExceptionHandle(
+			NoSuchElementException exception,
+			HttpServletRequest request
 			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+		
 		return ResponseEntity
-				.status(HttpStatus.NOT_FOUND) // Error 404
-				.body(ApiResponseDTO.error("Resource not found: " + exception.getLocalizedMessage(), "/path"));
+				.status(HttpStatus.NOT_FOUND) // 404
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
 	@ExceptionHandler(MissingServletRequestParameterException.class)
@@ -35,7 +41,7 @@ public class GlobalExceptionHandler {
 		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
 		
 		return ResponseEntity
-				.status(HttpStatus.BAD_REQUEST) // Error 400
+				.status(HttpStatus.BAD_REQUEST) // 400
 				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
@@ -48,7 +54,7 @@ public class GlobalExceptionHandler {
 		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
 		
 		return ResponseEntity
-				.status(HttpStatus.BAD_REQUEST) // Error 400
+				.status(HttpStatus.BAD_REQUEST) // 400
 				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 
@@ -61,8 +67,56 @@ public class GlobalExceptionHandler {
 	String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
 	
 	return ResponseEntity
-			.status(HttpStatus.INTERNAL_SERVER_ERROR) // Error 500
+			.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
 			.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> illegalArgumentExceptionHandle(
+			IllegalArgumentException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+
+		return ResponseEntity
+				.status(HttpStatus.INTERNAL_SERVER_ERROR) // 500
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> httpMessageNotReadableExceptionHandle(
+			HttpMessageNotReadableException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST) // 400
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> dataIntegrityViolationExceptionHandle(
+			DataIntegrityViolationException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+		
+		return ResponseEntity				
+				.status(HttpStatus.BAD_REQUEST) // 500
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
+	}
+	
+	@ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+	public ResponseEntity<ApiResponseDTO<Object>> httpRequestMethodNotSupportedExceptionHandle(
+			HttpRequestMethodNotSupportedException exception,
+			HttpServletRequest request
+			) {
+		String requestPath = "[" + request.getMethod() + "]" + request.getRequestURI();
+		
+		return ResponseEntity				
+				.status(HttpStatus.METHOD_NOT_ALLOWED) // 405
+				.body(ApiResponseDTO.error(exception.getLocalizedMessage(), requestPath));
 	}
 	
 }
